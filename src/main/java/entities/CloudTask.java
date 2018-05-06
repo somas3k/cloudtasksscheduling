@@ -15,6 +15,10 @@ public abstract class CloudTask {
 
     private double finishTime;
 
+    public int getVmId() {
+        return vmId;
+    }
+
     private int taskPriority;
 
     public double getStartTime() {
