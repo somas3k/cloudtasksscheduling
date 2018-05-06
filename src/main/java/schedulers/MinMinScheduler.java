@@ -22,21 +22,32 @@ public class MinMinScheduler implements BatchScheduler {
             System.out.println("This is start of iteration " + count);
             print2DArrayList(tasksVmsMatrix);
 
+
+            //1. find smallest in each row; and find smallest of all
             Map<Integer[], Double> map = findMinMinTimeMap(tasksVmsMatrix);
             printMapForMinMin(map);
 
+            //2. retrieve all the info from the map
             Integer[] rowAndColIndexAndTaskId = getRowAndColIndexesAndTaskId(map);
 
             Double min = getMinimumTimeValue(map);
             int rowIndex = rowAndColIndexAndTaskId[0];
             int columnIndex = rowAndColIndexAndTaskId[1];
             int taskId = rowAndColIndexAndTaskId[2];
+
+            //3. assign the task to the vm based on min-min
             taskList.get(taskId).setVmId(vmList.get(columnIndex).getVmId());
             System.out.println("The task " + taskId + " has been assigned to VM " + columnIndex);
+
+            //4. update ready-time array
             Double oldReadyTime = readyTime[columnIndex];
             readyTime[columnIndex] = min;
+
+            //5. update task-vm matrix with the current ready-time
             updateTotalTimeMatrix(columnIndex, oldReadyTime, readyTime, tasksVmsMatrix);
             System.out.println("The ready time array is: " + Arrays.toString(readyTime));
+
+            //6. remove the row after the task has been assigned to vm
             tasksVmsMatrix.remove(rowIndex);
 
             System.out.println("This is the end of iteration " + count);

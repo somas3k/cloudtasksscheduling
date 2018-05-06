@@ -5,6 +5,6 @@ import entities.VirtualMachine;
 
 import java.util.List;
 
-interface BatchScheduler {
+public interface BatchScheduler {
     void bindTasksToVirtualMachines(List<CloudTask> taskList, List<VirtualMachine> vmList);
 }
