@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.concurrent.Callable;
+
 public abstract class CloudTask {
     private final int taskId;
 
@@ -12,6 +14,8 @@ public abstract class CloudTask {
     private double startTime;
 
     private double finishTime;
+
+    private int taskPriority;
 
     public double getStartTime() {
         return startTime;
@@ -49,5 +53,10 @@ public abstract class CloudTask {
 
     public int getTaskId() {
         return taskId;
+
     }
+
+    public abstract void executeTask();
+
+
 }
