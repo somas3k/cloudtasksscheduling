@@ -15,11 +15,32 @@ public abstract class CloudTask {
 
     private double finishTime;
 
+    private int taskPriority;
+
+    public CloudTask(int taskId, int vmId, long taskLength) {
+        this.taskId = taskId;
+        this.vmId = vmId;
+        this.taskLength = taskLength;
+    }
+
+    @Override
+    public String toString() {
+        return "CloudTask{" +
+                "taskId=" + taskId +
+                ", taskLength=" + taskLength +
+                ", taskPriority=" + taskPriority +
+                '}';
+    }
+
+    public CloudTask(int taskId, int taskPriority, int taskLength) {
+        this.taskId = taskId;
+        this.taskPriority = taskPriority;
+        this.taskLength = taskLength;
+    }
+
     public int getVmId() {
         return vmId;
     }
-
-    private int taskPriority;
 
     public double getStartTime() {
         return startTime;
@@ -37,12 +58,6 @@ public abstract class CloudTask {
         this.finishTime = finishTime;
     }
 
-    public CloudTask(int taskId, int vmId, long taskLength) {
-        this.taskId = taskId;
-        this.vmId = vmId;
-        this.taskLength = taskLength;
-    }
-
     public void setVmId(int vmId) {
         this.vmId = vmId;
     }
@@ -58,6 +73,10 @@ public abstract class CloudTask {
     public int getTaskId() {
         return taskId;
 
+    }
+
+    public int getTaskPriority() {
+        return taskPriority;
     }
 
     public abstract void executeTask();
