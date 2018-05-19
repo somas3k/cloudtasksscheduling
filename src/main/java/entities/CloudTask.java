@@ -1,12 +1,14 @@
 package entities;
 
-import java.util.concurrent.Callable;
+import utils.TaskStatus;
 
-public abstract class CloudTask {
+import java.io.Serializable;
+
+public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
     private final int taskId;
 
-    // id of virtual machine which will execute this task
-    private int vmId;
+    // virtual machine which will execute this task
+    private transient VirtualMachine vm;
 
     // number of processor instructions needed to execute this task
     private long taskLength;
@@ -17,29 +19,51 @@ public abstract class CloudTask {
 
     private int taskPriority;
 
-    public CloudTask(int taskId, int vmId, long taskLength) {
+    private TaskStatus status;
+
+    public CloudTask(int taskId, long taskLength) {
         this.taskId = taskId;
-        this.vmId = vmId;
         this.taskLength = taskLength;
+        this.status = TaskStatus.CREATED;
+        this.vm = null;
+    }
+
+    public synchronized TaskStatus getStatus() {
+        return status;
+    }
+
+    public synchronized void setStatus(TaskStatus status) {
+        this.status = status;
+    }
+
+    @Override
+    public int compareTo(CloudTask cloudTask) {
+        return Integer.compare(taskId, cloudTask.taskId);
     }
 
     @Override
     public String toString() {
-        return "CloudTask{" +
+        if(vm!= null) return "CloudTask{" +
                 "taskId=" + taskId +
+                ", vm=" + vm +
                 ", taskLength=" + taskLength +
                 ", taskPriority=" + taskPriority +
+                ", status=" + status +
+                '}';
+        else return "CloudTask{" +
+                "taskId=" + taskId +
+                ", vm=" + "NOT_ASSIGNED" +
+                ", taskLength=" + taskLength +
+                ", taskPriority=" + taskPriority +
+                ", status=" + status +
                 '}';
     }
 
-    public CloudTask(int taskId, int taskPriority, int taskLength) {
+    public CloudTask(int taskId, int taskPriority) {
         this.taskId = taskId;
         this.taskPriority = taskPriority;
-        this.taskLength = taskLength;
-    }
-
-    public int getVmId() {
-        return vmId;
+        this.status = TaskStatus.CREATED;
+        this.vm = null;
     }
 
     public double getStartTime() {
@@ -58,8 +82,12 @@ public abstract class CloudTask {
         this.finishTime = finishTime;
     }
 
-    public void setVmId(int vmId) {
-        this.vmId = vmId;
+    public VirtualMachine getVm() {
+        return vm;
+    }
+
+    public void setVm(VirtualMachine vm) {
+        this.vm = vm;
     }
 
     public long getTaskLength() {

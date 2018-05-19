@@ -3,9 +3,9 @@ package schedulers;
 import entities.CloudTask;
 import entities.VirtualMachine;
 import org.apache.commons.math3.linear.*;
+import utils.TaskStatus;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.Queue;
 import java.util.Set;
 
 public class PriorityBasedJobScheduler extends OnlineScheduler {
@@ -13,13 +13,15 @@ public class PriorityBasedJobScheduler extends OnlineScheduler {
     private VirtualMachine[] vmsToAllocate;
     private RealMatrix priorityOfResourcesArray;
     private RealMatrix[] priorityOfJobsArrays;
-    public PriorityBasedJobScheduler(Set<CloudTask> tasks, Set<VirtualMachine> vms) {
+
+
+    public PriorityBasedJobScheduler(Queue<CloudTask> tasks, Set<VirtualMachine> vms) {
         super(tasks, vms);
     }
 
-
     private void prepareArrays(){
-        tasksToSchedule = tasks.toArray(new CloudTask[0]);
+        //tasksToSchedule = tasks.toArray(new CloudTask[0]);
+        tasksToSchedule = tasks.stream().filter(task -> task.getStatus().equals(TaskStatus.CREATED) ||task.getStatus().equals(TaskStatus.SCHEDULING)).peek(task -> task.setStatus(TaskStatus.SCHEDULING)).toArray(CloudTask[]::new);
         vmsToAllocate = vms.toArray(new VirtualMachine[0]);
     }
 
@@ -70,7 +72,6 @@ public class PriorityBasedJobScheduler extends OnlineScheduler {
             priorityOfJobsArrays[i] = MatrixUtils.createRealMatrix(prioritiesOfJobs);
 
         }
-
     }
 
     private int getIndexOfMax(double vector[]){
@@ -113,32 +114,42 @@ public class PriorityBasedJobScheduler extends OnlineScheduler {
     @Override
     public void bindTaskWithVM() {
         prepareArrays();
-        fillMatrices();
-        int vmsNumber = vmsToAllocate.length;
-        int tasksNumber = tasksToSchedule.length;
-        RealVector priorityVectorOfResource = getPriorityVectorOfResources();
-        RealVector[] priorityVectorsOfJobs = getPriorityVectors();
-        RealMatrix delta = MatrixUtils.createRealMatrix(vmsNumber, tasksNumber);
-        for (int i = 0; i < vmsNumber; i++) {
-            delta.setRowVector(i, priorityVectorsOfJobs[i]);
+        if(tasksToSchedule.length>0) {
+            fillMatrices();
+            int vmsNumber = vmsToAllocate.length;
+            int tasksNumber = tasksToSchedule.length;
+            RealVector priorityVectorOfResource = getPriorityVectorOfResources();
+            RealVector[] priorityVectorsOfJobs = getPriorityVectors();
+            RealMatrix delta = MatrixUtils.createRealMatrix(vmsNumber, tasksNumber);
+            for (int i = 0; i < vmsNumber; i++) {
+                delta.setRowVector(i, priorityVectorsOfJobs[i]);
+            }
+            RealVector PVS = delta.preMultiply(priorityVectorOfResource);
+
+            System.out.println("PVS: ");
+            RealVectorFormat format2 = new RealVectorFormat("[", "]", "\t");
+            System.out.println(format2.format(PVS));
+            System.out.println("Resources: ");
+            System.out.println(format2.format(priorityVectorOfResource));
+            int taskId = getIndexOfMax(PVS.toArray());
+            int vmId = getIndexOfMax(priorityVectorOfResource.toArray());
+            vmsToAllocate[vmId].incNumberOfAssignedTasks();
+            tasksToSchedule[taskId].setVm(vmsToAllocate[vmId]);
+            tasksToSchedule[taskId].setStatus(TaskStatus.WAITING_FOR_SEND);
+            System.out.println(vmsToAllocate[vmId]);
+            System.out.println(tasksToSchedule[taskId]);
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        RealVector PVS = delta.preMultiply(priorityVectorOfResource);
-
-
-        RealMatrixFormat format = new RealMatrixFormat("[","]","{","}","\n","\t\t");
-
-        System.out.println(format.format(delta));
-
-//
-//        EigenDecomposition decomposition = new EigenDecomposition(priorityOfResourcesArray);
-//        for(double e : decomposition.getRealEigenvalues()){
-//            System.out.println(e);
-//        }
-        RealVectorFormat format2 = new RealVectorFormat("[","]","\t");
-        System.out.println(format2.format(PVS));
-
-        System.out.println(tasksToSchedule[getIndexOfMax(PVS.toArray())]);
-        System.exit(0);
+        else try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 
     }

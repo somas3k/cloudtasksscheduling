@@ -11,27 +11,31 @@ import java.util.List;
 class MinMinSchedulerTest {
 
     private List<CloudTask> prepareCloudTaskList(){
-        CloudTask ct1 = new CloudTask(0, -1, 1500) {
+        CloudTask ct1 = new CloudTask(0, -1) {
             @Override
             public void executeTask() {
             }
         };
-        CloudTask ct2 = new CloudTask(1, -1, 2000) {
+        ct1.setTaskLength(1500);
+        CloudTask ct2 = new CloudTask(1, -1) {
             @Override
             public void executeTask() {
             }
         };
-        CloudTask ct3 = new CloudTask(2, -1, 500) {
+        ct2.setTaskLength(2000);
+        CloudTask ct3 = new CloudTask(2, -1) {
             @Override
             public void executeTask() {
             }
         };
-        CloudTask ct4 = new CloudTask(3, -1, 2500) {
+        ct3.setTaskLength(500);
+        CloudTask ct4 = new CloudTask(3, -1) {
             @Override
             public void executeTask() {
 
             }
         };
+        ct4.setTaskLength(2500);
         List<CloudTask> taskList = new ArrayList<>();
         taskList.add(ct1);
         taskList.add(ct2);
@@ -41,10 +45,10 @@ class MinMinSchedulerTest {
     }
 
     private List<VirtualMachine> prepareVMList(){
-        VirtualMachine vm1 = new VirtualMachine(0, 19);
-        VirtualMachine vm2 = new VirtualMachine(1, 20);
-        VirtualMachine vm3 = new VirtualMachine(2, 20);
-        VirtualMachine vm4 = new VirtualMachine(3, 21);
+        VirtualMachine vm1 = new VirtualMachine(0, 19, "a");
+        VirtualMachine vm2 = new VirtualMachine(1, 20, "b");
+        VirtualMachine vm3 = new VirtualMachine(2, 20, "c");
+        VirtualMachine vm4 = new VirtualMachine(3, 21, "d");
         List<VirtualMachine>  vmList = new ArrayList<>();
         vmList.add(vm1);
         vmList.add(vm2);
@@ -64,10 +68,10 @@ class MinMinSchedulerTest {
         scheduler.bindTasksToVirtualMachines(taskList, vmList);
 
         //then
-        assertEquals(1, taskList.get(0).getVmId());
-        assertEquals(2, taskList.get(1).getVmId());
-        assertEquals(3, taskList.get(2).getVmId());
-        assertEquals(0, taskList.get(3).getVmId());
+        assertEquals(1, taskList.get(0).getVm().getVmId());
+        assertEquals(2, taskList.get(1).getVm().getVmId());
+        assertEquals(3, taskList.get(2).getVm().getVmId());
+        assertEquals(0, taskList.get(3).getVm().getVmId());
     }
 
 }

@@ -36,7 +36,7 @@ public class MinMinScheduler implements BatchScheduler {
             int taskId = rowAndColIndexAndTaskId[2];
 
             //3. assign the task to the vm based on min-min
-            taskList.get(taskId).setVmId(vmList.get(columnIndex).getVmId());
+            taskList.get(taskId).setVm(vmList.get(columnIndex));
             System.out.println("The task " + taskId + " has been assigned to VM " + columnIndex);
 
             //4. update ready-time array
