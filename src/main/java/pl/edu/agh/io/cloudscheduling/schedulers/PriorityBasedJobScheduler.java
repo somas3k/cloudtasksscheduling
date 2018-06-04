@@ -1,11 +1,13 @@
-package schedulers;
+package pl.edu.agh.io.cloudscheduling.schedulers;
 
-import entities.CloudTask;
-import entities.VirtualMachine;
+
 import org.apache.commons.math3.linear.*;
-import utils.TaskStatus;
+import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
+import pl.edu.agh.io.cloudscheduling.entities.VirtualMachine;
+import pl.edu.agh.io.cloudscheduling.utils.TaskStatus;
 
-import java.util.Queue;
+
+import java.util.List;
 import java.util.Set;
 
 public class PriorityBasedJobScheduler extends OnlineScheduler {
@@ -15,7 +17,7 @@ public class PriorityBasedJobScheduler extends OnlineScheduler {
     private RealMatrix[] priorityOfJobsArrays;
 
 
-    public PriorityBasedJobScheduler(Queue<CloudTask> tasks, Set<VirtualMachine> vms) {
+    public PriorityBasedJobScheduler(List<CloudTask> tasks, Set<VirtualMachine> vms) {
         super(tasks, vms);
     }
 
@@ -138,12 +140,6 @@ public class PriorityBasedJobScheduler extends OnlineScheduler {
             tasksToSchedule[taskId].setStatus(TaskStatus.WAITING_FOR_SEND);
             System.out.println(vmsToAllocate[vmId]);
             System.out.println(tasksToSchedule[taskId]);
-
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
         else try {
             Thread.sleep(5000);

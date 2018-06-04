@@ -1,11 +1,14 @@
-import entities.*;
-import schedulers.*;
+import pl.edu.agh.io.cloudscheduling.entities.*;
+import pl.edu.agh.io.cloudscheduling.schedulers.*;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 class MinMinSchedulerTest {
@@ -62,7 +65,7 @@ class MinMinSchedulerTest {
         //given
         List<CloudTask> taskList = prepareCloudTaskList();
         List<VirtualMachine> vmList = prepareVMList();
-        BatchScheduler scheduler = new MinMinScheduler();
+        BatchScheduler scheduler = new MinMinScheduler(taskList, new HashSet<>(vmList));
 
         //when
         scheduler.bindTasksToVirtualMachines(taskList, vmList);
@@ -73,5 +76,6 @@ class MinMinSchedulerTest {
         assertEquals(3, taskList.get(2).getVm().getVmId());
         assertEquals(0, taskList.get(3).getVm().getVmId());
     }
+
 
 }

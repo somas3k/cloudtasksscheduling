@@ -1,4 +1,4 @@
-package entities;
+package pl.edu.agh.io.cloudscheduling.entities;
 
 import java.io.Serializable;
 

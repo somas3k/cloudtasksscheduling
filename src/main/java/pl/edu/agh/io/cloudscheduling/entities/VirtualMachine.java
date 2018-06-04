@@ -1,6 +1,7 @@
-package entities;
+package pl.edu.agh.io.cloudscheduling.entities;
 
-public class VirtualMachine implements Comparable<VirtualMachine>{
+
+public class VirtualMachine implements Comparable<VirtualMachine> {
     private final int vmId;
 
     private int numberOfAssignedTasks;
@@ -28,6 +29,8 @@ public class VirtualMachine implements Comparable<VirtualMachine>{
     public void incNumberOfAssignedTasks(){
         numberOfAssignedTasks++;
     }
+
+    public void decNumberOfAssignedTasks() { numberOfAssignedTasks--;}
 
     public int getVmId() {
         return vmId;

@@ -1,21 +1,22 @@
-package broker;
+package pl.edu.agh.io.cloudscheduling.broker;
 
 import com.rabbitmq.client.Channel;
-import entities.CloudTask;
-import utils.MessageUtils;
-import utils.TaskStatus;
+import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
+import pl.edu.agh.io.cloudscheduling.utils.MessageUtils;
+import pl.edu.agh.io.cloudscheduling.utils.TaskStatus;
+
 
 import java.io.IOException;
-import java.util.Queue;
+import java.util.List;
 
 public class TaskDispatcher extends Thread {
-    private Queue<CloudTask> tasks;
+    private List<CloudTask> tasks;
     private Channel dispatcherChannel;
     private String exchangeName;
 
     private volatile boolean stop = false;
 
-    public TaskDispatcher(Queue<CloudTask> tasks, Channel dispatcherChannel, String exchangeName) {
+    public TaskDispatcher(List<CloudTask> tasks, Channel dispatcherChannel, String exchangeName) {
         super();
         this.tasks = tasks;
         this.dispatcherChannel = dispatcherChannel;

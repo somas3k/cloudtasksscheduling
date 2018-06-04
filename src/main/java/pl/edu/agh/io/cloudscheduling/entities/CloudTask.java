@@ -1,27 +1,52 @@
-package entities;
+package pl.edu.agh.io.cloudscheduling.entities;
 
-import utils.TaskStatus;
+
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.async.DeferredResult;
+import pl.edu.agh.io.cloudscheduling.utils.TaskStatus;
 
 import java.io.Serializable;
 
 public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
-    private final int taskId;
+    private final long taskId;
 
     // virtual machine which will execute this task
     private transient VirtualMachine vm;
 
     // number of processor instructions needed to execute this task
-    private long taskLength;
+    private transient long taskLength;
 
     private double startTime;
 
     private double finishTime;
 
-    private int taskPriority;
+    private transient double taskPriority;
 
     private TaskStatus status;
 
-    public CloudTask(int taskId, long taskLength) {
+    private CloudResult result;
+
+    private transient DeferredResult<ResponseEntity<CloudResult>> responseResult;
+
+    public CloudResult getResult() {
+        return result;
+    }
+
+    public void setResult(CloudResult result) {
+
+        this.result = result;
+    }
+
+    public void setResponseResult(DeferredResult<ResponseEntity<CloudResult>> responseResult) {
+        this.responseResult = responseResult;
+    }
+
+    public DeferredResult<ResponseEntity<CloudResult>> getResponseResult() {
+        return responseResult;
+    }
+
+    public CloudTask(long taskId, long taskLength) {
         this.taskId = taskId;
         this.taskLength = taskLength;
         this.status = TaskStatus.CREATED;
@@ -38,7 +63,7 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
 
     @Override
     public int compareTo(CloudTask cloudTask) {
-        return Integer.compare(taskId, cloudTask.taskId);
+        return Long.compare(taskId, cloudTask.taskId);
     }
 
     @Override
@@ -59,7 +84,17 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
                 '}';
     }
 
-    public CloudTask(int taskId, int taskPriority) {
+    public void setTaskPriority(double taskPriority) {
+        this.taskPriority = taskPriority;
+    }
+
+    public CloudTask(long taskId) {
+        this.taskId = taskId;
+        this.status = TaskStatus.CREATED;
+        this.vm = null;
+    }
+
+    public CloudTask(long taskId, double taskPriority) {
         this.taskId = taskId;
         this.taskPriority = taskPriority;
         this.status = TaskStatus.CREATED;
@@ -98,16 +133,22 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
         this.taskLength = taskLength;
     }
 
-    public int getTaskId() {
+    public long getTaskId() {
         return taskId;
 
     }
 
-    public int getTaskPriority() {
+    public double getTaskPriority() {
         return taskPriority;
     }
 
     public abstract void executeTask();
 
-
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CloudTask cloudTask = (CloudTask) o;
+        return taskId == cloudTask.taskId;
+    }
 }

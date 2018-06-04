@@ -1,11 +1,24 @@
-package schedulers;
+package pl.edu.agh.io.cloudscheduling.schedulers;
 
-import entities.CloudTask;
-import entities.VirtualMachine;
+
+
+import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
+import pl.edu.agh.io.cloudscheduling.entities.VirtualMachine;
 
 import java.util.*;
 
-public class MinMinScheduler implements BatchScheduler {
+public class MinMinScheduler extends Scheduler implements BatchScheduler {
+    public MinMinScheduler(List<CloudTask> tasks, Set<VirtualMachine> vms) {
+        super(tasks, vms);
+    }
+
+    @Override
+    public void run() {
+        while(!isEnd){
+            bindTasksToVirtualMachines(tasks, new ArrayList<>(vms));
+        }
+    }
+
     public void bindTasksToVirtualMachines(List<CloudTask> taskList, List<VirtualMachine> vmList) {
         int vmNum = vmList.size();
 

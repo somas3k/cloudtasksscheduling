@@ -1,4 +1,4 @@
-package utils;
+package pl.edu.agh.io.cloudscheduling.utils;
 
 import java.io.Serializable;
 import java.util.function.Function;

@@ -1,13 +1,19 @@
-package virtual_machine;
+package pl.edu.agh.io.cloudscheduling.virtual_machine;
 
 import com.rabbitmq.client.*;
-import entities.CloudTask;
-import entities.RegisterMessage;
-import utils.MessageUtils;
-import utils.TaskStatus;
+import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
+import pl.edu.agh.io.cloudscheduling.entities.RegisterMessage;
+import pl.edu.agh.io.cloudscheduling.utils.MessageUtils;
+import pl.edu.agh.io.cloudscheduling.utils.TaskStatus;
+import pl.joegreen.lambdaFromString.LambdaFactory;
+import pl.joegreen.lambdaFromString.LambdaFactoryConfiguration;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Scanner;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class VMResource {
     private Consumer consumeTaskFromBroker;
@@ -22,6 +28,8 @@ public class VMResource {
     private String vmKey;
     private String dispatcherKey;
     private String dispatcherQueueName;
+    public static AtomicLong vmId;
+    public static LambdaFactory lambdaFactory = LambdaFactory.get(LambdaFactoryConfiguration.get().withImports(Math.class));
 
     public VMResource(String host, String username, String password, String dispatcherExchangeName, String registerExchangeName, String vmKey, String registerKey, String dispatcherKey){
         this.host = host;
@@ -32,9 +40,10 @@ public class VMResource {
         this.vmKey = vmKey;
         this.registerKey = registerKey;
         this.dispatcherKey = dispatcherKey;
+
     }
 
-    public void initializeChannels() throws Exception{
+    public void initializeChannels() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(this.host);
         factory.setUsername(this.username);
@@ -73,7 +82,7 @@ public class VMResource {
 
     private void sendWithResult(CloudTask task){
         try {
-            dispatcherChannel.basicPublish(dispatcherExchangeName, dispatcherKey, null, MessageUtils.serializeMessage(task));
+            dispatcherChannel.basicPublish(dispatcherExchangeName, dispatcherKey, null, MessageUtils.serializeMessage(task.getResult()));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -101,13 +110,23 @@ public class VMResource {
         String password = "Sabina95";
         String dispatcher = "CTSD";
         String register = "CTSR";
-        String vmKey;
+        String vmKey = null;
         String registerKey = "register";
         String dispatcherKey = "broker";
 
-        Scanner scanner = new Scanner(System.in);
-        vmKey = scanner.nextLine();
-        System.out.println("Key: " + vmKey);
+
+
+        try {
+            URL url = new URL("http://localhost:8090/app/vmId");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            vmKey = in.readLine();
+            vmId = new AtomicLong(Long.parseLong(vmKey));
+        } catch (IOException e){
+            e.printStackTrace();
+        }
 
         VMResource vm = new VMResource(host,user,password,dispatcher,register,vmKey,registerKey, dispatcherKey);
         try {
@@ -116,6 +135,7 @@ public class VMResource {
             vm.setupConsumer();
             vm.startConsuming();
             vm.registerInDispatcher(2.5);
+
         }
         catch (Exception e){
             e.printStackTrace();
