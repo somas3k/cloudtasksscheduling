@@ -3,7 +3,7 @@ package pl.edu.agh.io.cloudscheduling.tasks;
 import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
 import pl.edu.agh.io.cloudscheduling.entities.JSRequest;
 import pl.edu.agh.io.cloudscheduling.entities.JSResult;
-import pl.edu.agh.io.cloudscheduling.virtual_machine.VMResource;
+import pl.edu.agh.io.cloudscheduling.VMResource;
 
 import java.awt.*;
 

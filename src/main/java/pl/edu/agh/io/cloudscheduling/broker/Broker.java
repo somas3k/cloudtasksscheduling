@@ -163,13 +163,13 @@ public class Broker {
         this.tasks.addAll(tasks);
     }
 
-    private static void setExampleTasks(Broker broker){
-        MonteCarloTask t1 = new MonteCarloTask(0, 300000, 5, x -> x*x, -1, 1);
-        MonteCarloTask t2 = new MonteCarloTask(1, 500000, 6, x -> Math.sqrt(x) + 2, 0, 2);
-        MonteCarloTask t3 = new MonteCarloTask(2, 10000000, 1, x -> 2*x + 5, -10, 15);
-        MonteCarloTask t4 = new MonteCarloTask(3, 20, 6, x -> 1d, -1, 1);
-        broker.setTasks(Arrays.asList(t1, t2, t3, t4));
-    }
+//    private static void setExampleTasks(Broker broker){
+//        MonteCarloTask t1 = new MonteCarloTask(0, 300000, 5, x -> x*x, -1, 1);
+//        MonteCarloTask t2 = new MonteCarloTask(1, 500000, 6, x -> Math.sqrt(x) + 2, 0, 2);
+//        MonteCarloTask t3 = new MonteCarloTask(2, 10000000, 1, x -> 2*x + 5, -10, 15);
+//        MonteCarloTask t4 = new MonteCarloTask(3, 20, 6, x -> 1d, -1, 1);
+//        broker.setTasks(Arrays.asList(t1, t2, t3, t4));
+//    }
 
     public void addTask(CloudTask task){
         this.tasks.add(task);

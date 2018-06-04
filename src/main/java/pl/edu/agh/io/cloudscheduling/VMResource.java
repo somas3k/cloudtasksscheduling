@@ -1,4 +1,4 @@
-package pl.edu.agh.io.cloudscheduling.virtual_machine;
+package pl.edu.agh.io.cloudscheduling;
 
 import com.rabbitmq.client.*;
 import pl.edu.agh.io.cloudscheduling.entities.CloudTask;

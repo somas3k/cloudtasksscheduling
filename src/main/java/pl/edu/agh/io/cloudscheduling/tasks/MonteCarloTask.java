@@ -3,8 +3,7 @@ package pl.edu.agh.io.cloudscheduling.tasks;
 import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
 import pl.edu.agh.io.cloudscheduling.entities.MCRequest;
 import pl.edu.agh.io.cloudscheduling.entities.MCResult;
-import pl.edu.agh.io.cloudscheduling.utils.SerializableFunction;
-import pl.edu.agh.io.cloudscheduling.virtual_machine.VMResource;
+import pl.edu.agh.io.cloudscheduling.VMResource;
 import pl.joegreen.lambdaFromString.LambdaCreationException;
 import pl.joegreen.lambdaFromString.LambdaFactory;
 import pl.joegreen.lambdaFromString.LambdaFactoryConfiguration;
@@ -29,14 +28,6 @@ public class MonteCarloTask extends CloudTask {
             this.functionString = request.getFunction();
 
         this.setTaskLength(calculateTaskLength(numberOfIterations, functionString, bound));
-    }
-
-    public MonteCarloTask(int taskId, long numberOfIterations, int priority, SerializableFunction<Double, Double> function, double minX, double maxX) {
-        super(taskId, priority);
-        this.bound = new BoundUtil(minX, maxX);
-        this.numberOfIterations = numberOfIterations;
-        //this.function = function;
-        //this.setTaskLength(calculateTaskLength(numberOfIterations, function, bound));
     }
 
     private static long calculateTaskLength(long numberOfIterations, String functionString, BoundUtil bound){
