@@ -9,6 +9,7 @@ import pl.edu.agh.io.cloudscheduling.entities.CloudResult;
 import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
 import pl.edu.agh.io.cloudscheduling.entities.RegisterMessage;
 import pl.edu.agh.io.cloudscheduling.entities.VirtualMachine;
+import pl.edu.agh.io.cloudscheduling.schedulers.MinMinScheduler;
 import pl.edu.agh.io.cloudscheduling.schedulers.OnlineScheduler;
 import pl.edu.agh.io.cloudscheduling.schedulers.PriorityBasedJobScheduler;
 import pl.edu.agh.io.cloudscheduling.schedulers.Scheduler;
@@ -47,7 +48,7 @@ public class Broker {
     public Broker(@Value("${broker.host}")String host, @Value("${broker.username}")String username,
                   @Value("${broker.password}")String password, @Value("${broker.dispatcherExchangeName}")String dispatcherExchangeName,
                   @Value("${broker.registerExchangeName}")String registerExchangeName,
-                  @Value("${broker.dispatcherKey}")String dispatcherKey, @Value("${broker.registerKey}")String registerKey){
+                  @Value("${broker.dispatcherKey}")String dispatcherKey, @Value("${broker.registerKey}")String registerKey, @Value("${broker.schedulerName}")String schedulerName){
         this.host = host;
         this.username = username;
         this.password = password;
@@ -58,7 +59,8 @@ public class Broker {
 
         this.vms = new ConcurrentSkipListSet<>();
         this.tasks = new CopyOnWriteArrayList<>();
-        this.scheduler = new PriorityBasedJobScheduler(tasks, vms);
+        if(schedulerName.equals("PBJS")) this.scheduler = new PriorityBasedJobScheduler(tasks, vms);
+        if(schedulerName.equals("MinMin")) this.scheduler = new MinMinScheduler(tasks, vms);
 
         try {
             this.initializeChannels();
@@ -132,14 +134,14 @@ public class Broker {
     private void registerVM(RegisterMessage message){
         if(vms.size() == 0) {
             vms.add(new VirtualMachine(vms.size(), message.getMipsValue(), message.getKey()));
-            System.out.println("VM added " + message.getKey());
             startScheduler();
             startDispatcher();
         }
         else{
             vms.add(new VirtualMachine(vms.size(), message.getMipsValue(), message.getKey()));
-            System.out.println("VM added " + message.getKey());
+
         }
+        System.out.println("VM added " + message.getKey());
     }
 
     public void startConsuming(){
@@ -162,14 +164,6 @@ public class Broker {
     public void setTasks(List<CloudTask> tasks){
         this.tasks.addAll(tasks);
     }
-
-//    private static void setExampleTasks(Broker broker){
-//        MonteCarloTask t1 = new MonteCarloTask(0, 300000, 5, x -> x*x, -1, 1);
-//        MonteCarloTask t2 = new MonteCarloTask(1, 500000, 6, x -> Math.sqrt(x) + 2, 0, 2);
-//        MonteCarloTask t3 = new MonteCarloTask(2, 10000000, 1, x -> 2*x + 5, -10, 15);
-//        MonteCarloTask t4 = new MonteCarloTask(3, 20, 6, x -> 1d, -1, 1);
-//        broker.setTasks(Arrays.asList(t1, t2, t3, t4));
-//    }
 
     public void addTask(CloudTask task){
         this.tasks.add(task);

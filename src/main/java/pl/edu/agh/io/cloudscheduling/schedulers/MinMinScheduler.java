@@ -4,41 +4,97 @@ package pl.edu.agh.io.cloudscheduling.schedulers;
 
 import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
 import pl.edu.agh.io.cloudscheduling.entities.VirtualMachine;
+import pl.edu.agh.io.cloudscheduling.utils.TaskStatus;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class MinMinScheduler extends Scheduler implements BatchScheduler {
     public MinMinScheduler(List<CloudTask> tasks, Set<VirtualMachine> vms) {
         super(tasks, vms);
     }
 
-    @Override
-    public void run() {
-        while(!isEnd){
-            bindTasksToVirtualMachines(tasks, new ArrayList<>(vms));
+    private class TaskWrapper{
+        final int id;
+        private CloudTask task;
+
+        TaskWrapper(int id, CloudTask task) {
+            this.id = id;
+            this.task = task;
+        }
+
+        long getRealId() { return task.getTaskId();}
+
+
+        long getTaskLength() {
+            return task.getTaskLength();
+        }
+
+        void setVM(VMWrapper vm){
+            task.setVm(vm.vm);
+            task.setStatus(TaskStatus.WAITING_FOR_SEND);
         }
     }
 
-    public void bindTasksToVirtualMachines(List<CloudTask> taskList, List<VirtualMachine> vmList) {
+    private List<TaskWrapper> wrapTasks(){
+        AtomicInteger taskId = new AtomicInteger();
+        return tasks.stream().filter(task -> task.getStatus().equals(TaskStatus.CREATED) ||task.getStatus().equals(TaskStatus.SCHEDULING)).peek(task -> task.setStatus(TaskStatus.SCHEDULING)).map(task -> new TaskWrapper(taskId.getAndIncrement(), task)).collect(Collectors.toList());
+    }
+
+    private class VMWrapper{
+        final int id;
+        private VirtualMachine vm;
+
+        VMWrapper(int id, VirtualMachine vm) {
+            this.id = id;
+            this.vm = vm;
+        }
+
+        long getRealId() { return vm.getVmId(); }
+
+        double getMipsValue() {
+            return vm.getValueToCalculatePriority();
+        }
+    }
+
+    private List<VMWrapper> wrapVMs(){
+        AtomicInteger taskId = new AtomicInteger();
+        return vms.stream().map(vm -> new VMWrapper(taskId.getAndIncrement(), vm)).collect(Collectors.toList());
+    }
+
+    @Override
+    public void run() {
+        while(!isEnd){
+            List<TaskWrapper> tasks = wrapTasks();
+            List<VMWrapper> vms = wrapVMs();
+            if(!(tasks.size() == 0 || vms.size() == 0)){
+                bindTasksToVirtualMachines(wrapTasks(), wrapVMs());
+            }
+        }
+    }
+
+    public void bindTasksToVirtualMachines(List<?> taskList, List<?> vmList) {
         int vmNum = vmList.size();
+
 
         Double[] readyTime = new Double[vmNum];
         for (int i = 0; i < readyTime.length; i++) {
             readyTime[i] = 0.0;
         }
-        List<List<Double>> tasksVmsMatrix = create2DMatrix(taskList, vmList);
+        List<List<Double>> tasksVmsMatrix = create2DMatrix((List<TaskWrapper>)taskList, (List<VMWrapper>)vmList);
         //initializeTotalTime(tasksVmsMatrix, readyTime);
 
         int count = 1;
         do {
-            System.out.println("==========================");
-            System.out.println("This is start of iteration " + count);
-            print2DArrayList(tasksVmsMatrix);
+            //System.out.println("==========================");
+            //System.out.println("This is start of iteration " + count);
+            //print2DArrayList(tasksVmsMatrix);
 
 
             //1. find smallest in each row; and find smallest of all
             Map<Integer[], Double> map = findMinMinTimeMap(tasksVmsMatrix);
-            printMapForMinMin(map);
+            //printMapForMinMin(map);
 
             //2. retrieve all the info from the map
             Integer[] rowAndColIndexAndTaskId = getRowAndColIndexesAndTaskId(map);
@@ -49,8 +105,8 @@ public class MinMinScheduler extends Scheduler implements BatchScheduler {
             int taskId = rowAndColIndexAndTaskId[2];
 
             //3. assign the task to the vm based on min-min
-            taskList.get(taskId).setVm(vmList.get(columnIndex));
-            System.out.println("The task " + taskId + " has been assigned to VM " + columnIndex);
+            ((TaskWrapper)taskList.get(taskId)).setVM((VMWrapper)vmList.get(columnIndex));
+            System.out.println("The task " + ((TaskWrapper)taskList.get(taskId)).getRealId() + " has been assigned to VM " + ((VMWrapper)vmList.get(columnIndex)).getRealId());
 
             //4. update ready-time array
             Double oldReadyTime = readyTime[columnIndex];
@@ -58,13 +114,13 @@ public class MinMinScheduler extends Scheduler implements BatchScheduler {
 
             //5. update task-vm matrix with the current ready-time
             updateTotalTimeMatrix(columnIndex, oldReadyTime, readyTime, tasksVmsMatrix);
-            System.out.println("The ready time array is: " + Arrays.toString(readyTime));
+            //System.out.println("The ready time array is: " + Arrays.toString(readyTime));
 
             //6. remove the row after the task has been assigned to vm
             tasksVmsMatrix.remove(rowIndex);
 
-            System.out.println("This is the end of iteration " + count);
-            System.out.println("===========================");
+            //System.out.println("This is the end of iteration " + count);
+            //System.out.println("===========================");
             ++count;
         }
         while (tasksVmsMatrix.size() > 0);
@@ -152,13 +208,13 @@ public class MinMinScheduler extends Scheduler implements BatchScheduler {
 
     }
 
-    private static List<List<Double>> create2DMatrix(List<CloudTask> taskList, List<VirtualMachine> vmList) {
+    private static List<List<Double>> create2DMatrix(List<TaskWrapper> taskList, List<VMWrapper> vmList) {
         List<List<Double>> table = new ArrayList<List<Double>>();
-        for (CloudTask aTaskList : taskList) {
-            Double originalTaskId = (double) aTaskList.getTaskId();
+        for (TaskWrapper aTaskList : taskList) {
+            Double originalTaskId = (double) aTaskList.id;
             List<Double> temp = new ArrayList<Double>();
-            for (VirtualMachine aVmList : vmList) {
-                Double load = aTaskList.getTaskLength() / aVmList.getMipsValue();
+            for (VMWrapper aVmList : vmList) {
+                Double load = (double)aTaskList.getTaskLength() / aVmList.getMipsValue();
                 temp.add(load);
             }
             temp.add(originalTaskId);
