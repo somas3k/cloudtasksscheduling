@@ -17,9 +17,13 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
     // number of processor instructions needed to execute this task
     private transient long taskLength;
 
-    private double startTime;
+    private transient long startTime;
 
-    private double finishTime;
+    private transient long finishTime;
+
+    private transient long schedulingStartTime;
+
+    private transient long schedulingfinishTime;
 
     private transient double taskPriority;
 
@@ -38,6 +42,10 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
         this.result = result;
     }
 
+    public long getSchedulingTime() {
+        return schedulingfinishTime - schedulingStartTime;
+    }
+
     public void setResponseResult(DeferredResult<ResponseEntity<CloudResult>> responseResult) {
         this.responseResult = responseResult;
     }
@@ -51,14 +59,29 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
         this.taskLength = taskLength;
         this.status = TaskStatus.CREATED;
         this.vm = null;
+        this.startTime = System.currentTimeMillis();
     }
 
+    public void setFinishTime(){
+        this.finishTime = System.currentTimeMillis();
+    }
+
+    public long getExecutionTime(){
+        return finishTime - startTime;
+    }
     public synchronized TaskStatus getStatus() {
         return status;
     }
 
     public synchronized void setStatus(TaskStatus status) {
+
         this.status = status;
+        if(status.equals(TaskStatus.SCHEDULING)) schedulingStartTime = System.nanoTime();
+        else if(status.equals(TaskStatus.WAITING_FOR_SEND)) {
+            schedulingfinishTime = System.nanoTime();
+            //System.out.println(this + " scheduling time: " + (schedulingfinishTime - schedulingStartTime));
+        }
+
     }
 
     @Override
@@ -92,6 +115,7 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
         this.taskId = taskId;
         this.status = TaskStatus.CREATED;
         this.vm = null;
+        this.startTime = System.currentTimeMillis();
     }
 
     public CloudTask(long taskId, double taskPriority) {
@@ -99,13 +123,14 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
         this.taskPriority = taskPriority;
         this.status = TaskStatus.CREATED;
         this.vm = null;
+        this.startTime = System.currentTimeMillis();
     }
 
     public double getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(double startTime) {
+    public void setStartTime(long startTime) {
         this.startTime = startTime;
     }
 
@@ -113,7 +138,7 @@ public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
         return finishTime;
     }
 
-    public void setFinishTime(double finishTime) {
+    public void setFinishTime(long finishTime) {
         this.finishTime = finishTime;
     }
 

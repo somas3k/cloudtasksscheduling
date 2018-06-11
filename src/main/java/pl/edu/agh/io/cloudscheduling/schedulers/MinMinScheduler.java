@@ -34,6 +34,7 @@ public class MinMinScheduler extends Scheduler implements BatchScheduler {
         void setVM(VMWrapper vm){
             task.setVm(vm.vm);
             task.setStatus(TaskStatus.WAITING_FOR_SEND);
+            vm.vm.incNumberOfAssignedTasks();
         }
     }
 
@@ -106,7 +107,7 @@ public class MinMinScheduler extends Scheduler implements BatchScheduler {
 
             //3. assign the task to the vm based on min-min
             ((TaskWrapper)taskList.get(taskId)).setVM((VMWrapper)vmList.get(columnIndex));
-            System.out.println("The task " + ((TaskWrapper)taskList.get(taskId)).getRealId() + " has been assigned to VM " + ((VMWrapper)vmList.get(columnIndex)).getRealId());
+            //System.out.println("The task " + ((TaskWrapper)taskList.get(taskId)).getRealId() + " has been assigned to VM " + ((VMWrapper)vmList.get(columnIndex)).getRealId());
 
             //4. update ready-time array
             Double oldReadyTime = readyTime[columnIndex];

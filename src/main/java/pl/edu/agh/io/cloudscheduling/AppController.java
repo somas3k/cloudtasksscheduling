@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import pl.edu.agh.io.cloudscheduling.broker.Broker;
 import pl.edu.agh.io.cloudscheduling.entities.CloudResult;
+import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
 import pl.edu.agh.io.cloudscheduling.entities.JSRequest;
 import pl.edu.agh.io.cloudscheduling.entities.MCRequest;
 import pl.edu.agh.io.cloudscheduling.tasks.JuliaSetTask;
@@ -34,6 +35,23 @@ public class AppController{
         broker.addTask(task);
 
         return result;
+    }
+
+    @GetMapping(value = "/schedulerTest")
+    public void schedulerTest(){
+        for(int i = 0; i < 500; ++i){
+            CloudTask task;
+            long id = IDProvider.getNewTaskId();
+            if(i%2 == 0){
+
+                task = new MonteCarloTask(id, new MCRequest("x -> x*x", 50000, 0, 2, 10));
+            }
+            else{
+                task = new JuliaSetTask(id, new JSRequest(100,1,300,100,0,0,-0.390512, -0.586788, 10));
+            }
+
+            broker.addTask(task);
+        }
     }
 
     @PostMapping(value = "/juliaset")

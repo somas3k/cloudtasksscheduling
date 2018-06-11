@@ -28,6 +28,8 @@ public class JuliaSetTask extends CloudTask {
         maxY = request.getMaxY();
         moveX = request.getMoveX();
         moveY = request.getMoveY();
+
+        this.setTaskLength((long)Math.sqrt(maxX*maxY*numberOfIterations));
     }
 
     @Override
@@ -51,4 +53,6 @@ public class JuliaSetTask extends CloudTask {
         }
         setResult(new JSResult(getTaskId(), VMResource.vmId.get(), table));
     }
+
+
 }

@@ -1,14 +1,17 @@
 package pl.edu.agh.io.cloudscheduling.schedulers;
 
 
+import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.linear.*;
 import pl.edu.agh.io.cloudscheduling.entities.CloudTask;
 import pl.edu.agh.io.cloudscheduling.entities.VirtualMachine;
 import pl.edu.agh.io.cloudscheduling.utils.TaskStatus;
 
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PriorityBasedJobScheduler extends OnlineScheduler {
     private CloudTask[] tasksToSchedule;
@@ -23,8 +26,14 @@ public class PriorityBasedJobScheduler extends OnlineScheduler {
 
     private void prepareArrays(){
         //tasksToSchedule = tasks.toArray(new CloudTask[0]);
-        tasksToSchedule = tasks.stream().filter(task -> task.getStatus().equals(TaskStatus.CREATED) ||task.getStatus().equals(TaskStatus.SCHEDULING)).peek(task -> task.setStatus(TaskStatus.SCHEDULING)).toArray(CloudTask[]::new);
         vmsToAllocate = vms.toArray(new VirtualMachine[0]);
+
+        tasksToSchedule = tasks.stream().filter(task -> task.getStatus().equals(TaskStatus.CREATED) ||task.getStatus().equals(TaskStatus.SCHEDULING)).peek(task -> task.setStatus(TaskStatus.SCHEDULING)).toArray(CloudTask[]::new);
+        if(tasksToSchedule.length > vmsToAllocate.length*10) {
+            AtomicInteger counter = new AtomicInteger();
+
+            tasksToSchedule = Arrays.stream(tasksToSchedule).filter(task -> counter.incrementAndGet() < vmsToAllocate.length*10).toArray(CloudTask[]::new);
+        }
     }
 
     private void fillPrioritiesOfResources(int vmsNumber){
@@ -93,17 +102,29 @@ public class PriorityBasedJobScheduler extends OnlineScheduler {
         RealVector[] PVSs = new RealVector[count];
 
         for (int i = 0; i < count; i++) {
-            EigenDecomposition decomposition = new EigenDecomposition(priorityOfJobsArrays[i]);
-            int index = getIndexOfMax(decomposition.getRealEigenvalues());
-            PVSs[i] = decomposition.getEigenvector(index);
+            try {
+                EigenDecomposition decomposition = new EigenDecomposition(priorityOfJobsArrays[i]);
+                int index = getIndexOfMax(decomposition.getRealEigenvalues());
+                PVSs[i] = decomposition.getEigenvector(index);
+            }
+            catch (MaxCountExceededException e) {
+                System.out.println("blad2");
+                return null;}
+
         }
         return PVSs;
     }
 
     private RealVector getPriorityVectorOfResources(){
-        EigenDecomposition decomposition = new EigenDecomposition(priorityOfResourcesArray);
-        int index = getIndexOfMax(decomposition.getRealEigenvalues());
-        return decomposition.getEigenvector(index);
+        try {
+            EigenDecomposition decomposition = new EigenDecomposition(priorityOfResourcesArray);
+            int index = getIndexOfMax(decomposition.getRealEigenvalues());
+            return decomposition.getEigenvector(index);
+        }
+        catch (MaxCountExceededException e) {
+            System.out.println("blad");
+            return null;}
+
     }
 
     private void fillMatrices(){
@@ -121,25 +142,29 @@ public class PriorityBasedJobScheduler extends OnlineScheduler {
             int vmsNumber = vmsToAllocate.length;
             int tasksNumber = tasksToSchedule.length;
             RealVector priorityVectorOfResource = getPriorityVectorOfResources();
-            RealVector[] priorityVectorsOfJobs = getPriorityVectors();
-            RealMatrix delta = MatrixUtils.createRealMatrix(vmsNumber, tasksNumber);
-            for (int i = 0; i < vmsNumber; i++) {
-                delta.setRowVector(i, priorityVectorsOfJobs[i]);
-            }
-            RealVector PVS = delta.preMultiply(priorityVectorOfResource);
+            if(priorityVectorOfResource != null) {
+                RealVector[] priorityVectorsOfJobs = getPriorityVectors();
+                if(priorityVectorsOfJobs != null) {
+                    RealMatrix delta = MatrixUtils.createRealMatrix(vmsNumber, tasksNumber);
+                    for (int i = 0; i < vmsNumber; i++) {
+                        delta.setRowVector(i, priorityVectorsOfJobs[i]);
+                    }
+                    RealVector PVS = delta.preMultiply(priorityVectorOfResource);
 
-            System.out.println("PVS: ");
-            RealVectorFormat format2 = new RealVectorFormat("[", "]", "\t");
-            System.out.println(format2.format(PVS));
-            System.out.println("Resources: ");
-            System.out.println(format2.format(priorityVectorOfResource));
-            int taskId = getIndexOfMax(PVS.toArray());
-            int vmId = getIndexOfMax(priorityVectorOfResource.toArray());
-            vmsToAllocate[vmId].incNumberOfAssignedTasks();
-            tasksToSchedule[taskId].setVm(vmsToAllocate[vmId]);
-            tasksToSchedule[taskId].setStatus(TaskStatus.WAITING_FOR_SEND);
-            System.out.println(vmsToAllocate[vmId]);
-            System.out.println(tasksToSchedule[taskId]);
+                    //System.out.println("PVS: ");
+                    //RealVectorFormat format2 = new RealVectorFormat("[", "]", "\t");
+                    //System.out.println(format2.format(PVS));
+                    //System.out.println("Resources: ");
+                    //System.out.println(format2.format(priorityVectorOfResource));
+                    int taskId = getIndexOfMax(PVS.toArray());
+                    int vmId = getIndexOfMax(priorityVectorOfResource.toArray());
+                    vmsToAllocate[vmId].incNumberOfAssignedTasks();
+                    tasksToSchedule[taskId].setVm(vmsToAllocate[vmId]);
+                    tasksToSchedule[taskId].setStatus(TaskStatus.WAITING_FOR_SEND);
+                    //System.out.println(vmsToAllocate[vmId]);
+                    //System.out.println(tasksToSchedule[taskId]);
+                }
+            }
         }
         else try {
             Thread.sleep(5000);

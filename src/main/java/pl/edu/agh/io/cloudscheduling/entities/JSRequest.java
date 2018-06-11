@@ -28,7 +28,7 @@ public class JSRequest {
     public JSRequest() {
     }
 
-    public JSRequest(long numberOfIterations, double zoom, int maxX, int maxY, double moveX, double moveY, double cX, double cY) {
+    public JSRequest(long numberOfIterations, double zoom, int maxX, int maxY, double moveX, double moveY, double cX, double cY, double taskPriority) {
         this.numberOfIterations = numberOfIterations;
         this.zoom = zoom;
         this.maxX = maxX;
@@ -37,6 +37,7 @@ public class JSRequest {
         this.moveY = moveY;
         this.cX = cX;
         this.cY = cY;
+        this.taskPriority = taskPriority;
     }
 
     public long getNumberOfIterations() {

@@ -25,9 +25,9 @@ public class MonteCarloTask extends CloudTask {
         this.numberOfIterations = request.getNumberOfIterations();
         this.bound = new BoundUtil(request.getMinX(), request.getMaxX());
         super.setTaskPriority(request.getPriority());
-            this.functionString = request.getFunction();
+        this.functionString = request.getFunction();
 
-        this.setTaskLength(calculateTaskLength(numberOfIterations, functionString, bound));
+        this.setTaskLength((long)Math.sqrt(calculateTaskLength(numberOfIterations, functionString, bound)));
     }
 
     private static long calculateTaskLength(long numberOfIterations, String functionString, BoundUtil bound){

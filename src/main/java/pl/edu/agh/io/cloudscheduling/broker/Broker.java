@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 @Service
@@ -122,12 +123,20 @@ public class Broker {
             }
         };
     }
+    private AtomicLong sumExecutionTime = new AtomicLong();
+    private int counter = 0;
 
     private void handleResult(CloudResult result){
         CloudTask t = tasks.stream().filter(task -> task.getTaskId()==result.getTaskId()).findAny().get();
-        t.getResponseResult().setResult(ResponseEntity.ok(result));
+        t.setFinishTime();
+        counter++;
+        if(t.getResponseResult()!= null) t.getResponseResult().setResult(ResponseEntity.ok(result));
+        sumExecutionTime.addAndGet(t.getExecutionTime());
         tasks.remove(t);
         vms.stream().filter(vm -> vm.getVmId()==result.getVmId()).findAny().get().decNumberOfAssignedTasks();
+
+        if(counter == 500) System.out.println("Execution time: " + sumExecutionTime);
+
 
     }
 
