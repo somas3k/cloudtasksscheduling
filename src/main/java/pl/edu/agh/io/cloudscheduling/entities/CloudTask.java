@@ -9,6 +9,9 @@ import pl.edu.agh.io.cloudscheduling.utils.TaskStatus;
 import java.io.Serializable;
 
 public abstract class CloudTask implements Comparable<CloudTask>, Serializable {
+
+    static final long serialVersionUID = 1234L;
+
     private final long taskId;
 
     // virtual machine which will execute this task
