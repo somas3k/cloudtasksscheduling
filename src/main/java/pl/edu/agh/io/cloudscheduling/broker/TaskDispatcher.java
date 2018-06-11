@@ -42,7 +42,7 @@ public class TaskDispatcher extends Thread {
                     e.printStackTrace();
                 }
             });
-            if(counter.get() == 500) {
+            if(counter.get() == 100) {
                 System.out.println("==============Scheduling time: " + schedulingTime + " =======================");
                 counter.set(0);
             }

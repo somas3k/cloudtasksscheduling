@@ -39,7 +39,7 @@ public class AppController{
 
     @GetMapping(value = "/schedulerTest")
     public void schedulerTest(){
-        for(int i = 0; i < 500; ++i){
+        for(int i = 0; i < 100; ++i){
             CloudTask task;
             long id = IDProvider.getNewTaskId();
             if(i%2 == 0){

@@ -135,7 +135,7 @@ public class Broker {
         tasks.remove(t);
         vms.stream().filter(vm -> vm.getVmId()==result.getVmId()).findAny().get().decNumberOfAssignedTasks();
 
-        if(counter == 500) System.out.println("Execution time: " + sumExecutionTime);
+        if(counter == 100) System.out.println("Execution time: " + sumExecutionTime);
 
 
     }
